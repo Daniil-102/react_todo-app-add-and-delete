@@ -5,7 +5,7 @@ import cn from 'classnames';
 interface Props {
   todos: Todo[];
   deleteTodo: (id: number) => Promise<void>;
-  isDeleteDisabled: boolean;
+  deleteDisabled: number[];
   tempTodo: Todo | null;
   deleteCompleted: () => Promise<void>;
   clearDisabled: boolean;
@@ -14,7 +14,7 @@ interface Props {
 export const TodoList: React.FC<Props> = ({
   todos: todosData,
   deleteTodo,
-  isDeleteDisabled,
+  deleteDisabled,
   tempTodo,
   deleteCompleted,
   clearDisabled,
@@ -61,7 +61,7 @@ export const TodoList: React.FC<Props> = ({
               type="button"
               className="todo__remove"
               data-cy="TodoDelete"
-              disabled={isDeleteDisabled}
+              disabled={deleteDisabled.includes(todo.id)}
             >
               ×
             </button>
@@ -70,7 +70,7 @@ export const TodoList: React.FC<Props> = ({
             <div
               data-cy="TodoLoader"
               className={cn('modal overlay', {
-                'is-active': isDeleteDisabled,
+                'is-active': deleteDisabled.includes(todo.id),
               })}
             >
               <div className="modal-background has-background-white-ter" />
@@ -86,6 +86,7 @@ export const TodoList: React.FC<Props> = ({
                 data-cy="TodoStatus"
                 type="checkbox"
                 className="todo__status"
+                checked={tempTodo.completed}
               />
             </label>
 
@@ -94,15 +95,16 @@ export const TodoList: React.FC<Props> = ({
             </span>
 
             <button
-              disabled
+              onClick={() => deleteTodo(tempTodo.id)}
               type="button"
               className="todo__remove"
               data-cy="TodoDelete"
+              disabled={deleteDisabled.includes(tempTodo.id)}
             >
               ×
             </button>
 
-            {/* 'is-active' class puts this modal on top of the todo */}
+            {/* overlay will cover the todo while it is being deleted or updated */}
             <div data-cy="TodoLoader" className="modal overlay is-active">
               <div className="modal-background has-background-white-ter" />
               <div className="loader" />

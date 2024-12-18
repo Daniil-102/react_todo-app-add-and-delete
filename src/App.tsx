@@ -17,15 +17,16 @@ export const App: React.FC = () => {
   const [errors, setErrors] = useState<Errors>({ messages: [] });
   const [input, setInput] = useState('');
   const [isLoadingTodos, setIsLoadingTodos] = useState(true);
+  const [loadingTodos, setLoadingTodos] = useState<number[]>([]);
   const [isNotificationVisible, setNotificationVisible] = useState(false);
   const [isInputDisabled, setIsInputDisabled] = useState(false);
-  const [isDeleteDisabled, setIsDeleteDisabled] = useState(false);
+  // const [isDeleteDisabled, setIsDeleteDisabled] = useState(false);
   const [errorTimeout, setErrorTimeout] = useState<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
-  }, [isInputDisabled, isDeleteDisabled]);
+  }, [isInputDisabled, loadingTodos]);
 
   const updateClearCompletedState = useCallback((todosList: Todo[]) => {
     setIsClearCompletedDesabled(!todosList.some(todo => todo.completed));
@@ -130,13 +131,12 @@ export const App: React.FC = () => {
     } catch (error) {
       showError('Unable to delete a todo');
     } finally {
-      setIsDeleteDisabled(false);
       inputRef.current?.focus();
     }
   };
 
   const handleDeleteTodo = async (id: number) => {
-    setIsDeleteDisabled(true);
+    setLoadingTodos(prev => [...prev, id]);
 
     try {
       await deleteTodo(id);
@@ -150,7 +150,7 @@ export const App: React.FC = () => {
     } catch (error) {
       showError('Unable to delete a todo');
     } finally {
-      setIsDeleteDisabled(false);
+      setLoadingTodos(prev => prev.filter(loadingId => loadingId !== id));
       inputRef.current?.focus();
     }
   };
@@ -235,7 +235,7 @@ export const App: React.FC = () => {
           <TodoList
             clearDisabled={isClearCompletedDesabled}
             tempTodo={tempTodo}
-            isDeleteDisabled={isDeleteDisabled}
+            deleteDisabled={loadingTodos}
             deleteTodo={handleDeleteTodo}
             todos={todos}
             deleteCompleted={handleDeleteCompletedTodos}
